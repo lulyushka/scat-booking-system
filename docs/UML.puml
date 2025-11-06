@@ -1,0 +1,86 @@
+@startuml
+' Задаем название диаграммы
+title UML Class Diagram for Scat Booking System
+
+' Устанавливаем стиль для красоты
+skinparam classAttributeIconSize 0
+skinparam linetype ortho
+
+' --- Дизайн-паттерны (Design Patterns) ---
+
+interface IPricingStrategy <<Strategy>> {
+  + calculate_price(seat: Seat, event: BookingEvent): float
+}
+note right: "Определяет контракт для алгоритмов расчета цены"
+
+class TransactionFactory <<Factory>> {
+  + create_passive_income(user: User): Transaction
+  + create_admin_award(user: User, amount: float): Transaction
+  + create_booking_payment(user: User, booking: Booking): Transaction
+}
+note left: "Инкапсулирует логику создания разных типов транзакций"
+
+' --- Конкретная реализация стратегии ---
+
+class LinearDecayPricingStrategy implements IPricingStrategy {
+  + calculate_price(seat: Seat, event: BookingEvent): float
+}
+
+' --- Основные классы-сущности (Core Entities) ---
+
+class User {
+  - id: int
+  - name: str
+  - balance: float
+  + add_points(amount: float)
+  + withdraw_points(amount: float)
+}
+
+class Admin extends User {
+  + award_points(user: User, amount: float)
+}
+
+class BookingEvent {
+  - id: int
+  - name: str
+  - event_date: datetime
+  + get_current_price(seat: Seat): float
+}
+
+class Seat {
+  - id: int
+  - row: int
+  - number: int
+  - base_price: float
+}
+
+class Booking {
+  - id: int
+  - final_price: float
+  - created_at: datetime
+}
+
+class Transaction {
+  - id: int
+  - amount: float
+  - type: TransactionType
+  - timestamp: datetime
+}
+
+' --- Связи между классами (Relationships) ---
+
+' 1. Событие использует Стратегию ценообразования (Ассоциация)
+BookingEvent "1" o-- "1" IPricingStrategy : uses >
+
+' 2. Транзакции создаются Фабрикой (Зависимость)
+TransactionFactory ..> Transaction : creates
+
+' 3. Запись о бронировании связывает Пользователя, Место и Событие (Ассоциация)
+Booking "1" -- "1" User
+Booking "1" -- "1" Seat
+Booking "1" -- "1" BookingEvent
+
+' 4. Пользователь "владеет" своими транзакциями (Композиция)
+User "1" *-- "0..*" Transaction
+
+@enduml
